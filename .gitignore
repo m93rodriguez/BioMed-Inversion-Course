@@ -1,0 +1,39 @@
+# Ignore large data files and external libraries
+Data/
+
+# Ignore Virtual environments
+*venv/
+*egg-info/
+
+# Ignore compiled binaries
+*.o
+*.so
+*.out
+*.exe
+
+# Ignore build and local code directories
+debug/
+build/
+bin/
+local/
+
+# Ignore editor and IDE files
+.vscode/
+.idea/
+*.user
+
+# Ignore Latex auxiliary files
+.aux
+.bbl
+.blg
+.log
+.synctex.gz
+
+# Ignore system and temporary files
+.DS_Store
+Thumbs.db
+*pycache*
+
+# Ignore configuration files with sensitive information
+config.ini
+Copyright
