@@ -1,0 +1,174 @@
+\documentclass{article}
+
+\usepackage{xcolor}
+\usepackage{fullpage}
+
+\usepackage[utf8]{inputenc}
+\usepackage[most]{tcolorbox}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=cyan,
+}
+
+
+%\pagestyle{empty}
+
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
+
+\def \r {\mathbf r}
+\def \dif {\mathrm{d}} % Differential
+\newcommand{\difx}[2]{\frac{\dif}{\dif #1}}
+\newcommand{\pdifx}[2][x]{\frac{\partial #2}{\partial #1}}
+
+\graphicspath{{Figures}}
+
+\begin{document}
+	
+	\begin{tikzpicture}[remember picture, overlay]
+		
+		\node[anchor=north east,inner sep=0] at (1,2.5) {\includegraphics[width=0.2\textwidth]{logo.jpg}};
+		\node[anchor=north east,inner sep=0] at (17,2.5) {\includegraphics[width=0.08\textwidth]{logocnrs.jpg}};
+		\node[anchor=north east,inner sep=0] at (12.8,2.5) {\includegraphics[width=0.2\textwidth]{LOGO_AMU.png}};
+	\end{tikzpicture}
+		
+		\noindent
+		\begin{tcolorbox}[enhanced, colback=white, colframe=black, 
+		fontupper=\sffamily, sharp corners,
+		shadow={4pt}{4pt}{0mm}{black},boxrule=1pt]
+		FORWARD PROBLEM MODELING \hfill MScT CSE \hfill\\
+		Martin Rodriguez-Vega \hfill Year: 2025--2026\\
+		~\\
+			\centerline{\rmfamily PRACTICAL WORK 1}
+	\end{tcolorbox}
+
+\section{Introduction}
+
+During the practical work sessions, the use of Python to solve the proposed exercises is recommended. Remember to save your work, as it may be used in the next sessions. 
+
+A report were you describe your methodology and provided answers for the exercises for all practical work sessions is expected after the end of the ourse. Send your work to:
+\begin{center}
+	\href{mailto:martin.RODRIGUEZ-VEGA@univ-amu.fr}{\texttt{martin.RODRIGUEZ-VEGA@univ-amu.fr}}
+\end{center}
+
+Please abstain to use LLM or AI tools. Previous years have shown that false responses are very common. Do not hesitate to ask questions during the session. 
+
+\section{Optical properties for biological tissues}
+
+The main parameters we will use to describe the propagation of light in biological tissues are: Absorption coefficient $\mu_a$, Scattering coefficient $\mu_s$, anisotropy factor $g$, and refraction index $n$.
+
+We will consider fixed values for the latter three properties, $\mu_s = 100$ cm$^{-1}$, $g=0.9$, $n=1.37$, and will focus mainly in the changes introduced by modifying the absorption coefficient. 
+
+Assume a simplified tissue composed of water, fat, and hemoglobin, with different composition ratios. The absorption coefficient of this tissue can be modeled as a weighted average of its compositional substances\cite{Jacques2013}:
+\begin{equation}
+	\mu_a^\text{tissue}(\lambda) = \sum_{s\in\text{substances}} c_s \mu_a^s(\lambda)
+\end{equation}
+where $\lambda$ is the wavelength, $c_s\in[0,1]$ is the percentage of abundance of substance $s$ in the tissue. Note that $\sum_s c_s = 1$. \\
+
+
+\noindent \textbf{Exercise 1.1:} Generate plots of the absorption spectra of water, fat, hemoglobin (Hb), and oxygenated hemoglobin (HbO) in the near infrared range (between 600 and 1000 nm). Which wavelengths would you use to try to determine the blood oxygenation? Why?
+
+Assume a tissue composition of 65\% water, 20\% fat and 15\% total hemoglobin (Hb + HbO). Plot the resulting absorption spectrum of the tissue at for different oxygenation levels. Discuss. \\
+ 
+\noindent \textbf{Hints:} Different spectra for common biological substance can be found in \url{https://omlc.org/spectra/index.html}. 
+Plot the spectra in log scale (e.g. function \texttt{semilogy} of \texttt{matplotlib.pyplot} in Python).
+
+To convert hemoglobin molar extinction coefficient [cm$^{-1}$ M] into absorption coefficient [cm$^{-1}$] you can multiply the former by 0.0054 (assuming 15\% Hb, and 64.5 molar mass).\\
+
+\section{Light propagation model}
+
+In highly scattering media, $\mu_a \ll \mu_s$, the Diffusion Approximation (DA) is commonly used instead of the Radiative Transfer Equation (RTE)\cite{Ishimaru}:
+\begin{equation}
+	-\nabla \cdot D(\r) \nabla \phi(\r) + \mu_a(\r) \phi(\r) = s(\r)
+\end{equation}
+where the diffusion coefficient $D$ is
+\begin{equation}
+	D(\r) = \frac{1}{3(\mu_a + (1-g) \mu_s)}
+\end{equation}
+
+Common boundary conditions used for the DA include the Extrapolated Boundary Conditon (EBC) \cite{Haskell1994a}, which are Dirichlet conditions that extend the domain a distance of $2D$ and impose $\phi(\r) = 0$ in this new boundary. See Fig.~\ref{fig-domain}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{domain}
+	\caption{Domain and extended domain to take into account boundary condition}
+	\label{fig-domain}
+\end{figure}
+
+If we assume that $D(\r)$ is homogeneous (does not change in space), then we can simplify the DA to a modified Helmholtz equation:
+\begin{equation}\label{eq-helm}
+	-\nabla^2 \phi(\r) + k^2(\r)\phi(\r) = \frac{s(\r)}{D}
+\end{equation}
+where $k^2(\r) = \mu_a(\r) / D$.
+
+\subsection{Numerical solutions to the DA}
+
+We will consider here the Finite Differences Method (FDM), which discretizes space into a grid of finite points, $\r \in \{\r_0, \r_1, \r_2, \dots, \r_{n-1} \}$. This method approximates the first and second derivatives using low order Taylor expansions. For instance, in 2D,
+\begin{align}\begin{split}
+	\pdifx{}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - \phi(x, y)}{\Delta x} & \quad  \text{Forward difference, 1st derivative} \\
+	\pdifx{}\phi(x,y) \approx \frac{\phi(x, y) - \phi(x-\Delta x, y)}{\Delta x} & \quad  \text{Backward difference, 1st derivative} \\
+	\pdifx{}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - \phi(x, y)}{\Delta x} & \quad  \text{Central difference, 1st derivative} \\\\
+	\pdifx[x^2]{^2}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - 2\phi(x, y) + \phi(x-\Delta x, y)}{\Delta x^2} & \quad  \text{Central difference, 2nd derivative} \\
+\end{split}\end{align}
+
+The FDM gives a solution to a differential linear operator by transforming it into a set of linear equations
+\begin{equation}
+	-\nabla^2 \phi(\r) + k^2(\r) \phi(\r) = \frac{s(\r)}{D} \quad \underset{\text{FDM}}{\implies} \quad
+	A \left[\begin{array}{c} \phi(\r_0) \\ \phi(\r_1) \\ \vdots \\ \phi(\r_{n-1} ) \end{array}\right] = \frac{1}{D}
+	\left[\begin{array}{c} s(\r_0) \\ s(\r_1) \\ \vdots \\ s(\r_{n-1} ) \end{array}\right]
+\end{equation}
+where $A$ is a $n\times n$ matrix.  \\
+
+\paragraph{EXERCISE 1.2}: Consider a 1D domain of length $L$ discretized into $n$ points with uniform spacing $\Delta x$. Write the FDM form of the DA \eqref{eq-helm} for one point in the interior $x_i$ whose neighbors are $x_{i-1}$ and $x_{i+1}$. How can you use this expression to generate a matrix? 
+\paragraph{Hints:} To simplify notation, you can write $\phi(x_i) = \phi[i]$ and $k^2(x_i) = k^2[i]$. You can think of row $i$ of matrix $A$ as the expression you obtain expanding the DA for point $i$, and $A_{ij}$ as the coefficient of $\phi[j]$ if it appears in the expansion. 
+
+\paragraph{EXERCISE 1.3}: Write a Python function that takes as input a vector of size $n$ representing the values of $k^2(x)$, the discretization spacing $\Delta x$, and the vector of sources $s(x)$ of dimension $n$. This functions constructs the matrix $A$ and solves the linear system to return the fluence vector $\phi(x)$. 
+
+\paragraph{Hints}: To apply the EBC, note that in 1D they become $x[0] = 0$ and $x[n-1] = 0$. Thus $A_{0,0} = 1$ and $A_{0,i} = 0$ for all other $i$, and $A_{n-1,n-1} = 1$ and $A_{n-1,i} = 0$ for all other $i$, with $s[0] = 0$ and $s[n-1] = 0$.
+
+The linear system can be solve in Python using \texttt{numpy.linalg.solve}.
+
+\paragraph{EXERCISE 1.4}: Using the spectra you developed earlier, create an homogeneous slab of length 2 cm and discretize the space into at least 30 points. Generate the optical properties for a wavelength of your chossing and vectors $k^2(x)$. Compute the fluence using $s(x) = (1 \text{ W cm}^{-2})\delta(x - 1\text{ cm})$ and plot your results. 
+
+Compare your results with the analytical solution of the Helmholtz equation. 
+
+\paragraph{Hints}: Be careful on the discretization of $\delta$ sources. For some function $g(x) = p \delta(x-x_i)$, then $g[i] = p/\Delta x$ and 0 else. 
+
+The Green's function of the Helmholtz equation for an infinite homogeneous medium:
+\begin{equation}
+	G(x, x') = \frac{e^{-k|x-x'|}}{2kD}
+\end{equation}
+where $x'$ is the position of a point source. Recall that the solution for a general source using the Green's function is
+\begin{equation}
+	\phi(x) = \int_0^L G(x, x') s(x') \dif x'
+\end{equation}
+For simple finite geometries, you can use the method of images.
+
+\paragraph{EXERCISE 1.5}: Try your FDM code for different source positions and non-homogeneous $k^2$ values.
+
+\paragraph{EXERCISE 1.6}: Consider a 2D rectangular domain of dimensions $L_x \times L_y$ discretized into $n_x \times n_y$ points with uniform spacing. 
+Write the FDM form of the DA \eqref{eq-helm} for one point in the interior $\r_i = (x_i, y_i)$. How many neighbors do each interior point have? How can you use this expression to generate a matrix?
+
+\paragraph{EXERCISE 1.7} Write a Python function that takes as input a matrix $k^2[i,j]$, a matrix $s[i,j]$ and the discretization step $\Delta x$. This function returns the approximate solution to the DA using the FDM.
+
+\paragraph{Hints}: Note the unknown function $\phi$ now is 2D matrix $\phi[i,j]$ (How many unknowns are there?). A 2D array (in fact and n-dimensional array) can be written in 1D, this is called a \textit{ravel}. This is usually done by unwrappring the matrix row by row:
+\begin{equation}
+	\text{vec} (\phi) = \left( \phi[0,0], \phi[0,1], \phi[0,2], \dots, \phi[0, n_y-1], \phi[1, 0], \phi[1, 1], \dots, \phi[1, n_y-1], \dots, \phi[n_x-1, n_y-1] \right)
+\end{equation}
+In Python, see the documentation of \texttt{numpy} methods \texttt{ravel, flatten, ravel\_multi\_index, unravel\_index}.
+
+
+\bibliographystyle{abbrv}
+\bibliography{biblio}
+
+\end{document}
