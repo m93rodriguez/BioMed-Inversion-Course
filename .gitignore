@@ -24,10 +24,11 @@ local/
 
 # Ignore Latex auxiliary files
 .aux
-.bbl
-.blg
-.log
-.synctex.gz
+*.bbl
+*.blg
+*.log
+*.synctex.gz
+*.out
 
 # Ignore system and temporary files
 .DS_Store

@@ -1,6 +1,6 @@
 \documentclass[a4paper]{article} 
 
-\input{../doc_config}
+\input{../../doc_config}
 
 \title{\LARGE \bf
 	Radon Transform
@@ -33,24 +33,23 @@ Suppose that we have detectors around the surface of the domain of interest, tha
 \end{equation}
 Here, the limits are taken for all space assuming that outside the domain of interest there is no absorption. 
 
-To get all the information along direction $\ori$, we consider all lines that do not intersect. We can do this by choosing a normal vector perpendicular to $\ori$, such that $\r_0 = t\ori^\perp$ letting $t\in(-\infty, \infty)$.
+To get all the information along direction $\ori$, we consider all lines that do not intersect. We can do this by choosing a normal vector perpendicular to $\ori$, such that $\r_0 = t\n$ letting $t\in(-\infty, \infty)$.
 
 \begin{equation}
-	\log\left(\frac{I(\r_0,\ori)}{I(\r, \ori)}\right) = \int_{-\infty}^{\infty} \mu_a(t\ori^\perp + s\ori) \dif s
+	\log\left(\frac{I(\r_0,\ori)}{I(\r, \ori)}\right) = \int_{-\infty}^{\infty} \mu_a(t\n + s\ori) \dif s
 \end{equation}
 We can define the Radon transform as
 \begin{equation}
-	\mathcal R(\ori, t) \triangleq \int_{-\infty}^{\infty} \mu_a(t\ori^\perp + s\ori) \dif s
+	\mathcal R(\n, t) \triangleq \int_{-\infty}^{\infty} \mu_a(t\n + s\ori) \dif s
 \end{equation}
 
-
-If we choose a coordinate system $\r = (x, y)$, then we can parametrize $\ori$ using some angle $\theta$ with respect to $x$:
+If we choose a coordinate system $\r = (x, y)$, then we can parametrize $n$ using some angle $\theta$ with respect to $x$:
 \begin{equation}
-	\ori = \left[\begin{array}{c} \cos\theta \\ \sin\theta \end{array}\right] \quad , \quad \ori^\perp = \left[\begin{array}{c} -\sin\theta \\ \cos\theta \end{array}\right]
+	\n = \left[\begin{array}{c} \cos\theta \\ \sin\theta \end{array}\right] \quad , \quad \ori = \left[\begin{array}{c} \sin\theta \\ -\cos\theta \end{array}\right]
 \end{equation}
-Note that the choice of $\ori^\perp$ is not unique (can be mirrored). The Radon transform is then
+Note that the choice of $\n$ is not unique (can be mirrored). The Radon transform is then
 \begin{equation}
-	\log\left(\frac{I(\r_0,\ori)}{I(\r, \ori)}\right) = \mathcal R(\theta, t) 	\triangleq   \int_{-\infty}^\infty \mu_a(s\cos\theta - t\sin\theta, s\sin\theta + t\cos\theta) \dif s 
+	\log\left(\frac{I(\r_0,\ori)}{I(\r, \ori)}\right) = \mathcal R(\theta, t) 	\triangleq   \int_{-\infty}^\infty \mu_a(s\sin\theta + t\cos\theta, -s\cos\theta + t\sin\theta) \dif s 
 \end{equation}
 
 \section{Inverse problem}
@@ -61,14 +60,14 @@ Suppose a sinogram $\mathcal (\theta, t)$ is given. We wish to recover $\mu_a(\r
 \end{equation}
 Similarly, the 1D Fourier transform of the sinogram for a given $\theta$ is
 \begin{equation}
-	\Pi(\theta, \omega) = \mathcal F\left\{ \mathcal R(\theta,t)\right\} = \int_{-\infty}^\infty \mathcal R(\theta, t) e^{-2\pi i \omega t}  \dif t = M(\omega\ori^\perp)
+	\Pi(\theta, \omega) = \mathcal F\left\{ \mathcal R(\theta,t)\right\} = \int_{-\infty}^\infty \mathcal R(\theta, t) e^{-2\pi i \omega t}  \dif t = M(\omega\n)
 \end{equation}
-Where the last equality comes from the Fourier slice theorem. Indeed, let $\r = t\ori^\perp + s\ori$
+Where the last equality comes from the Fourier slice theorem. Indeed, let $\r = t\n + s\ori$
 \begin{align}\begin{split}
-	M(\omega\ori^\perp) =&  \int_\mathbb {R}\int_\mathbb{R} \mu_a(\r) e^{-2\pi i (t\ori^\perp + s\ori) \cdot (\omega \ori^\perp)} \dif t \dif s \\
+	M(\omega\n) =&  \int_\mathbb {R}\int_\mathbb{R} \mu_a(\r) e^{-2\pi i (t\n + s\ori) \cdot (\omega \n)} \dif t \dif s \\
 	=& \int_\mathbb {R}\int_\mathbb{R} \mu_a(\r) e^{-2\pi i t\omega} \dif t \dif s \\
-	=& \int_\mathbb {R} \left ( \int_\mathbb{R} \mu_a(t\ori^\perp + s\ori)  \dif s \right ) e^{-2\pi i t\omega}\dif t \\
-	=& \int_\mathbb {R} \mathcal R(\ori, t) e^{-2\pi i t\omega}\dif t \\
+	=& \int_\mathbb {R} \left ( \int_\mathbb{R} \mu_a(t\n + s\ori)  \dif s \right ) e^{-2\pi i t\omega}\dif t \\
+	=& \int_\mathbb {R} \mathcal R(\n, t) e^{-2\pi i t\omega}\dif t \\
 	=& \Pi(\theta, \omega)	
 \end{split}\end{align}
 
@@ -76,9 +75,9 @@ The most common inversion approach is the Back projection formula, which can be 
 \begin{equation}
 	\mu_a(\r) = \int_\mathbb R\int_\mathbb R M(\bm \omega) e^{2\pi i \bm \omega \cdot \r} \dif^2 \bm\omega
 \end{equation}
-consider a change of variables from cartesian to polar coordinates in the frequency plane, using the angle $\theta$ and the `radius' $\omega$, such that $\bm \omega = (-\omega\sin\theta, \omega\cos\theta) = \omega\ori^\perp$:
+consider a change of variables from cartesian to polar coordinates in the frequency plane, using the angle $\theta$ and the `radius' $\omega$, such that $\bm \omega = (\omega\cos\theta, \omega\sin\theta) = \omega\n$:
 \begin{align}
-	\mu_a(\r) =& \int_0^\pi \int_\mathbb R M(\omega\ori^\perp) e^{2\pi i \omega \ori^\perp \cdot \r} |\omega |\dif \omega \dif \theta \\
+	\mu_a(\r) =& \int_0^\pi \int_\mathbb R M(\omega\n) e^{2\pi i \omega \n \cdot \r} |\omega |\dif \omega \dif \theta \\
 	=& \int_0^\pi \int_\mathbb R \Pi(\theta, \omega) e^{2\pi i \omega t} |\omega |\dif \omega \dif \theta \\
 	=& \int_0^\pi \mathcal F^{-1}\left\{\Pi(\theta, \omega) |\omega | \right\}(t) \dif \theta
 \end{align}

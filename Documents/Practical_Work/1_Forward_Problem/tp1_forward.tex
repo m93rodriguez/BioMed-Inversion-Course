@@ -117,7 +117,7 @@ We will consider here the Finite Differences Method (FDM), which discretizes spa
 \begin{align}\begin{split}
 	\pdifx{}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - \phi(x, y)}{\Delta x} & \quad  \text{Forward difference, 1st derivative} \\
 	\pdifx{}\phi(x,y) \approx \frac{\phi(x, y) - \phi(x-\Delta x, y)}{\Delta x} & \quad  \text{Backward difference, 1st derivative} \\
-	\pdifx{}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - \phi(x, y)}{\Delta x} & \quad  \text{Central difference, 1st derivative} \\\\
+	\pdifx{}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - \phi(x-\Delta, y)}{2\Delta x} & \quad  \text{Central difference, 1st derivative} \\\\
 	\pdifx[x^2]{^2}\phi(x,y) \approx \frac{\phi(x+\Delta x, y) - 2\phi(x, y) + \phi(x-\Delta x, y)}{\Delta x^2} & \quad  \text{Central difference, 2nd derivative} \\
 \end{split}\end{align}
 
