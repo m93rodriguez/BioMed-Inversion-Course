@@ -132,7 +132,7 @@ Iterative methods give an approximate solution to this problem. Here, we conside
 	where $A_i$ is the $i$-th row of A
 	\item Gradient descent. Finds successive solutions to minimize some function $g(\x)$:
 	\begin{equation}
-		\x^{k_1} = \x^k - \eta \nabla g(\x^k)
+		\x^{k+1} = \x^k - \eta \nabla g(\x^k)
 	\end{equation}
 	For the case of linear least squares, we have $\nabla g(\x) = 2A^\top (A\x - \y)$
 \end{itemize}

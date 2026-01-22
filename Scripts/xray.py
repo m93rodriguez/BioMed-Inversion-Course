@@ -78,14 +78,5 @@ if __name__ == '__main__':
     theta = np.linspace(0, 2 * np.pi, 300)
     s = np.linspace(-l / np.sqrt(2), l / np.sqrt(2), 250)
 
-    mua = np.array(Image.open("local/Fry.jpg")).sum(axis=2)
-    mua = mua / mua.max()
-    n = mua.shape[0]
-    x = np.arange(n) * l / (n - 1) - l / 2
-    dx = x[1] - x[0]
-
-    sinogram = make_sinogram(mua, dx, s, theta)
-    sinogram = sinogram/sinogram.max()
-    np.save("sinogram2.npy", sinogram)
 
 
