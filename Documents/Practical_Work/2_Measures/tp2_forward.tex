@@ -1,0 +1,152 @@
+\documentclass{article}
+
+\usepackage{xcolor}
+\usepackage{fullpage}
+
+\usepackage[utf8]{inputenc}
+\usepackage[most]{tcolorbox}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{bm}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=cyan,
+}
+
+
+%\pagestyle{empty}
+
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
+
+\def \r {\mathbf r}
+\def \ori {\mathbf u}
+\def \x {\mathbf x}
+\def \y {\mathbf y}
+\def \dif {\mathrm{d}} % Differential
+\newcommand{\difx}[2]{\frac{\dif}{\dif #1}}
+\newcommand{\pdifx}[2][x]{\frac{\partial #2}{\partial #1}}
+
+\graphicspath{{Figures}}
+
+\begin{document}
+	
+	\begin{tikzpicture}[remember picture, overlay]
+		
+		\node[anchor=north east,inner sep=0] at (1,2.5) {\includegraphics[width=0.2\textwidth]{logo.jpg}};
+		\node[anchor=north east,inner sep=0] at (17,2.5) {\includegraphics[width=0.08\textwidth]{logocnrs.jpg}};
+		\node[anchor=north east,inner sep=0] at (12.8,2.5) {\includegraphics[width=0.2\textwidth]{LOGO_AMU.png}};
+	\end{tikzpicture}
+		
+		\noindent
+		\begin{tcolorbox}[enhanced, colback=white, colframe=black, 
+		fontupper=\sffamily, sharp corners,
+		shadow={4pt}{4pt}{0mm}{black},boxrule=1pt]
+		MEASURES AND LINEAR INVERSE PROBLEMS \hfill MScT CSE \hfill\\
+		Martin Rodriguez-Vega \hfill Year: 2025--2026\\
+		~\\
+			\centerline{\rmfamily PRACTICAL WORK 2}
+	\end{tcolorbox}
+
+\section{Introduction}
+
+During the practical work sessions, the use of Python to solve the proposed exercises is recommended. Remember to save your work, as it may be used in the next sessions. 
+
+Documents and useful scripts can be found in the course repository:
+
+\begin{center}
+	\url{https://github.com/m93rodriguez/BioMed-Inversion-Course}
+\end{center}
+A report were you describe your methodology and provided answers for the exercises for all practical work sessions is expected after the end of the ourse. Send your work to:
+\begin{center}
+	\href{mailto:martin.RODRIGUEZ-VEGA@univ-amu.fr}{\texttt{martin.RODRIGUEZ-VEGA@univ-amu.fr}}
+\end{center}
+
+Please abstain to use LLM or AI tools. Previous years have shown that false responses are very common. Do not hesitate to ask questions during the session. 
+
+\section{X-Ray Tomography}
+
+In this section, we are analyze the absorption coefficient in 2D: $\mu_a(\r) = \mu(x,y)$. In X-ray tomography, scattering in negligible, so the steady-state light propagation model is 
+\begin{equation}\label{eq-Beer}
+	\ori\cdot \nabla L(\r, \ori) + \mu_a(\r) = 0
+\end{equation}
+which has analytical solution
+\begin{equation}\label{eq-Beersol}
+	L(\r_0 + \ell\ori, \ori) = L(\r_0, \ori) \exp\left(-\int_0^\ell \mu(\r_0 + x\ori) \dif x\right)
+\end{equation}
+where the Radiance is known at some point $\r_0$.
+
+\paragraph{EXERCISE 2.1}: Prove that \eqref{eq-Beersol} satisfies \eqref{eq-Beer} for the 1D case.
+
+\paragraph{HINTS}: Recall that $\ori \cdot \nabla$ is equivalent to the directional derivative, and that in 1D there is only one direction. Use the Fundamental Theorem of Calculus. \\
+
+The Radon Transform is the analytical method to obtain the sinogram of an object of interest. It is defined as
+\begin{equation}
+	R_\mu(\theta, s) = \int_{-\infty}^{\infty} \mu(s\cos\theta - t\sin\theta, s\sin\theta + t\cos\theta) \dif t
+\end{equation}
+Let the sinogram be denoted as $p(\theta, t) = R_\mu(\theta, s)$. Suppose we discretize the sinogram into a matrix of dimensions $n_s, n_\theta$, and that we discretize space into $n_x, n_y$ points. Then, we can approximate the Radon transform with a matrix:
+\begin{equation}\label{eq-radonmatrix}
+	\mathbf p = W \bm\mu
+\end{equation}
+where $\mathbf p$ is an unwrapped version of the sinogram, and $\bm\mu$ is an unwrapped version of the absorption coefficient.
+
+\paragraph{EXERCISE 2.2}: Is $W$ a constant matrix of does it depend on $\mu$? Why? Show that the Radon Transform is a linear operator. \\
+
+\paragraph{EXERCISE 2.3}: What are the dimension of $W$ in terms of $n_s, n_\theta, n_x, n_y$? 
+
+\noindent In the repository, in \texttt{Scripts}, you will find Python module \texttt{xray.py} which contains functions \texttt{make\_sinogram} and \texttt{radon\_matrix}. 
+
+\paragraph{EXERCISE 2.4}: Generate some sample domains by defining the absorption coefficient in a 2D plane. Use \texttt{make\_sinogram} function to generate its measure. Plot and compare the 2D matrices.
+
+\paragraph{EXERCISE 2.5}: Function \texttt{radon\_matrix} constructs matrix $W$ in \eqref{eq-radonmatrix}. Compute the sinogram using \eqref{eq-radonmatrix} and compare the outputs with was obtained in the previous exercise.
+
+\paragraph{HINTS}: In Python, see the documentation of \texttt{numpy} methods \texttt{ravel, flatten, ravel\_multi\_index, unravel\_index, reshape}.
+
+\section{Linear Inversion problems}
+
+Inverse problems can often be written as an optimization problem
+\begin{equation}
+	\min_{\mathbf x} \quad d(\mathbf y, f(\mathbf x))
+\end{equation}
+where $\mathbf y$ is a vector of measurements, $\mathbf x$ is a vector of parameters, $f$ is the forward model, and $d$ is a distance or error function. When $f$ is a linear function and $d$ is the square norm of the error we get the least squares problem 
+\begin{equation}
+	\min_{\mathbf x} \quad ||\mathbf y - A \mathbf x||^2
+\end{equation}
+
+Although this has analytical solution $\mathbf x = A^+\mathbf y$ where $A^+$ is the pseudo-inverse, for very large systems this is too computationally expensive to solve analytically. 
+
+Iterative methods give an approximate solution to this problem. Here, we consider two methods:
+\begin{itemize}
+	\item Algebraic Reconstruction Technique (ART). Developped for X-ray tomography, finds successive solutions 
+	\begin{equation}
+		\x^{k+1} = \x^k + \lambda \frac{y_i - A_i\cdot \x^k}{||A_i||^2} A_i^\top
+	\end{equation}
+	where $A_i$ is the $i$-th row of A
+	\item Gradient descent. Finds successive solutions to minimize some function $g(\x)$:
+	\begin{equation}
+		\x^{k_1} = \x^k - \eta \nabla g(\x^k)
+	\end{equation}
+	For the case of linear least squares, we have $\nabla g(\x) = 2A^\top (A\x - \y)$
+\end{itemize}
+
+\paragraph{EXERCISE 2.6}: Write a Python function that implements the ART algorithm.
+
+\paragraph{EXERCISE 2.7}: Write a Python function that implements the Gradient descent algorithm.
+
+\paragraph{EXERCISE 2.8}: In the \texttt{Scripts} directory, you will find two sinograms, either in image or \texttt{numpy} array form. Test your inversion algorithms to reconstruct the corresponding $\mu(x,y)$ and show your results.
+
+\paragraph{HINTS}: For \texttt{sinogram1}, you can use a reconstruction size of between 50 and 100 pixels per dimension, and for \texttt{sinogram2} between 100 and 200 pixels. Use \texttt{radon\_matrix} to generate the $W$ matrix. If needed, you can reduce the number of $\theta$ and $s$ by taking 1 every 2 or 3 samples instead. 
+
+
+%\bibliographystyle{abbrv}
+%\bibliography{biblio}
+
+\end{document}

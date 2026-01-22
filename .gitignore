@@ -23,7 +23,7 @@ local/
 *.user
 
 # Ignore Latex auxiliary files
-.aux
+*.aux
 *.bbl
 *.blg
 *.log
