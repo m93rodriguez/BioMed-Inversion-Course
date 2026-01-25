@@ -1,0 +1,187 @@
+\documentclass{article}
+
+\usepackage{xcolor}
+\usepackage{fullpage}
+
+\usepackage[utf8]{inputenc}
+\usepackage[most]{tcolorbox}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{bm}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,      
+	urlcolor=cyan,
+}
+
+
+%\pagestyle{empty}
+
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.misc}
+
+\def \r {\mathbf r}
+\def \ori {\mathbf u}
+\def \x {\mathbf x}
+\def \y {\mathbf y}
+\def \dif {\mathrm{d}} % Differential
+\newcommand{\difx}[2]{\frac{\dif}{\dif #1}}
+\newcommand{\pdifx}[2][x]{\frac{\partial #2}{\partial #1}}
+
+\graphicspath{{Figures}}
+
+\begin{document}
+	
+	\begin{tikzpicture}[remember picture, overlay]
+		
+		\node[anchor=north east,inner sep=0] at (1,2.5) {\includegraphics[width=0.2\textwidth]{logo.jpg}};
+		\node[anchor=north east,inner sep=0] at (17,2.5) {\includegraphics[width=0.08\textwidth]{logocnrs.jpg}};
+		\node[anchor=north east,inner sep=0] at (12.8,2.5) {\includegraphics[width=0.2\textwidth]{LOGO_AMU.png}};
+	\end{tikzpicture}
+		
+		\noindent
+		\begin{tcolorbox}[enhanced, colback=white, colframe=black, 
+		fontupper=\sffamily, sharp corners,
+		shadow={4pt}{4pt}{0mm}{black},boxrule=1pt]
+		NON LINEAR INVERSE PROBLEMS\hfill MScT CSE \hfill\\
+		Martin Rodriguez-Vega \hfill Year: 2025--2026\\
+		~\\
+			\centerline{\rmfamily PRACTICAL WORK 3}
+	\end{tcolorbox}
+
+\section{Instructions}
+
+During the practical work sessions, the use of Python to solve the proposed exercises is recommended. Remember to save your work, as it may be used in the next sessions. 
+
+Documents and useful scripts can be found in the course repository:
+
+\begin{center}
+	\url{https://github.com/m93rodriguez/BioMed-Inversion-Course}
+\end{center}
+
+The final report report should include:
+\begin{itemize}
+	\item Answers to the Exercises proposed in each of the three Practical Work sessions. Mark which exercise you are answering (\textit{e.g.} E1.3, E2.5, E3.1, etc). Organize your report into sections 1 to 3, according to each practical session. 
+	\item A description of the methodology of what you implemented and how.
+	\item When showing the results of simulations for which you decided the parameters, clearly indicate the values of each relevant parameter you used, \textbf{with units}. Another person should be able to replicate your results using your report. 
+	\item Figures showing reconstructions and measurements should also include the original object when applicable. Recall that all figures should be \textbf{readable, clear} and \textbf{well-labeled}.
+	\item If a plot has values that range over several orders of magnitude, consider using a logarithmic plot. For instance, if showing the convergence of an algorithm and iteration 1 has error 10$^4$ and after iteration 20 error are below 1, this cannot be clearly seen in a linear plot, and log plot should be used. 
+\end{itemize} 
+
+Send your work to:
+\begin{center}
+	\href{mailto:martin.RODRIGUEZ-VEGA@univ-amu.fr}{\texttt{martin.RODRIGUEZ-VEGA@univ-amu.fr}}
+\end{center}
+mark the subject as \textbf{[BioMed] TP Report - YOUR NAME}.
+%
+Deadline is: 
+\begin{center}
+	\textbf{Monday, February 2nd 2026 at 8h00}
+\end{center}
+
+I will confirm reception of your email, so try sending me another email if you have not received my reply on Monday afternoon.
+
+Please abstain to use LLM or AI tools. Previous years have shown that false responses are very common. Do not hesitate to ask questions during the session. 
+
+\section{Diffuse Optical Tomography}
+
+In this session, we will use the forward model given by the Diffusion Approximation (DA):
+\begin{equation}\label{eq:DA}
+	-\nabla^2 \phi(\r) \phi(\r) + k^2(\r) \phi(\r) = \frac{s(\r)}{D}
+\end{equation}
+where we assume the diffusion coefficient $D\approx 0.4$ cm everywhere. We will use Extended Boundary conditions, where we extend the domain a distance $2D$ in every direction imposing $\phi(\r) = 0$ for $\r$ in the extended boundary, see Fig.~\ref{fig:domain}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{domain}
+	\caption{Domain and extended domain to take into account boundary conditions.}
+	\label{fig:domain}
+\end{figure}
+
+We will use a two-dimensional rectangular extended domain of 10 mm $\times$ 15 mm, with inhomogeneous properties $k^2(\r) \in [0.01, 0.1]$ mm$^{-2}$. The use of discretization steps $\Delta$ of 0.1 mm or 0.2 mm is recommended. 
+
+The sources used in this session will be point-like sources $s(\r) = P \delta(\r - \r_s)$, where $P = 2.5$ W/mm such that the right hand side of \eqref{eq:DA} simplifies to 1.
+
+\paragraph{Attention:} In the repository under the \texttt{Scripts} directory, you will find Python module \texttt{diffapprox.py} which contains method \texttt{da2d} that solves the two-dimensional DA using the Finite Element method. You can use this function to solve the forward problem, or you can use your own software from Practical Session 1. 
+
+\subsection{Measurements}
+
+We will consider a set of sources $\r_s \in \mathcal S$ and a set of detectors $\r_d \in \mathcal D$. We will consider as measurements the values of the fluence for every source-detector combination $\phi(\r_d | \r_s)$, where this reads \textit{the fluence at point $\r_d$ given source $\r_s$.}
+
+
+\paragraph{EXERCISE 3.1}: Generate a domain with uniform properties $k^2(\r) = 0.05$ mm$^{-2}$. Distribute 10 sources along the horizontal axis at the top, and 15 detectors along the horizontal axis at the bottom. How many measurements can you obtain? Show the resulting measurements. 
+
+\paragraph{HINTS}: Remember to leave a margin of $2D$ from the borders of the domain, no source or detector should be put there. Plot the measurements as a matrix. 
+
+\paragraph{EXERCISE 3.2}: Modify the $k^2(\r)$ of the previous domain to add inhomogeneities (regions of more and of less absorption). For the same source/detector positions, show the measurements of the inhomogeneous domain.
+
+\paragraph{EXERCISE 3.3}: Compare the measurements from the previous two exercises, both by subtraction and division. Discuss what this means for the inverse problem in terms of stability and conditioning.
+
+\subsection{Sensitivity matrix and Born Approximation}
+
+For the inverse problem, we want to compute how much does changes $\delta k^2$ in the parameters $k^2$ will generate changes in the measurements $\delta \phi(\r_d | \r_s)$. The Born approximation is
+\begin{equation}
+	\delta\phi(\r_d | \r_s) \approx - \int_\Omega G(\r, \r_d) \phi(\r|\r_s) \delta k^2(\r) \dif \r
+\end{equation}
+where $G(\r, \r_d)$ is the Green's function of the DA for a source placed at $\r_d$.
+
+We can discretize this equation in the domain $\Omega$ as $\delta\bm\phi= K\x$ , where $\delta\bm\phi$ is the vector of measurements variations, $\delta\mathbf k^2$ is the vector of parameters variations, and $K$ is the sensitivity matrix. 
+
+\paragraph{EXERCISE 3.4}: What are the dimensions of $\x$, $\delta \bm \phi$ and $J$, in terms of the number of sources, detectors, and domain shape? \\
+
+To improve the conditioning of the inverse problem, instead of considering the absolute change $\delta\phi$ in the measures, it is better to consider the relative change:
+\begin{equation}
+	\frac{\delta\phi(\r_d | \r_s)}{\phi(\r_d|\r_s)} \approx - \frac{1}{\phi(\r_d|\r_s)}\int_\Omega G(\r, \r_d) \phi(\r|\r_s) \delta k^2(\r) \dif \r
+\end{equation}
+which is equally discretized as $\y = J \x$, where $\y$ is the vector of relative measure variation and $J$ is the relative sensitivity. This is known as the Rytov Approximation. 
+
+
+\paragraph{EXERCISE 3.5}: Program a function that computes matrix $J$ for a given domain, sources, and detectors. Compute $J$ for the inhomogeneous domain you made in E3.2.
+
+\subsection{Inversion}
+
+The Gauss-Newton algorithm is used to solve non-linear optimization problems
+\begin{equation}
+	\underset{k^2(\r)}{\min} \quad \sum_{\r_s,\r_d} |\phi_\text{real}(\r_d|\r_s) - \phi(\r_d|\r_s, k^2)|^2
+\end{equation}
+
+The algorithm starts from a starting ``guess" $k^2_0(\r)$, which we will iteratively adjust
+\begin{equation}
+	k^2_{n+1}(\r) = k^2_{n}(\r) + \Delta k^2(\r)
+\end{equation}
+where $\Delta k^2(\r)$ solves the linear least-squares problem
+\begin{equation}
+	\Delta k^2(\r) = 	\underset{\x}{\text{argmin}} \quad ||\y - J\x||^2
+\end{equation}
+where we have used the Rytov Approximation. \textit{Note:} the Born approximation can also be used, but it generally converges more slowly, though it can be more stable. 
+
+\paragraph{EXERCISE 3.6}: Make a function that implements one iteration of the Gauss-Newton algorithm; it: computes $\phi$ using the given $k^2$, computes the measurement error vector $(\phi_\text{real} - \phi)/\phi$, computes the relative sensitivity, solves the linear least squares problem, and updates the parameters $k^2$. 
+
+Test this to reconstruct your inhomogeneous properties from E3.2 starting from the domain from E3.1.
+
+\paragraph{HINTS}: To solve the linear least squares, you can use the iterative solvers from Practical Session 2. 
+
+\paragraph{EXERCISE 3.7}: In the \texttt{Data} directory in the repository, you will find a numpy file \texttt{dot\_data.npz} that contains arrays \texttt{sources, detectors, measures}:
+\begin{itemize}
+	\item Source coordinates are given as a $S\times 2$ array, where the first column gives the coordinates along the vertical dimension, and the second column gives the coordinates along the horizontal dimension.
+	\item Detector coordinates are given as a $D\times 2$ array, with the same convention as the sources.
+	\item The measurement data is given as a $S\times D$ array, with the fluence $\phi(\r_d|\r_s)$
+\end{itemize}
+Use the Newton-Gauss method to estimate the real $k^2$ parameters, and show your results.
+
+\paragraph{HINTS}: The simulated domain was of dimensions 10 mm $\times$ 15 mm (vertical $\times$ horizontal), discretized into 50$\times$75 elements ($\Delta x=0.2$ mm). Use a starting homogeneous guess of $k^2 = 0.05$ mm$^{-2}$. 
+
+The real parameters are bounded inside $(0.01, 0.1)$ mm$^{-2}$, so you can impose these bounds in your iterative process. 
+
+
+%\bibliographystyle{abbrv}
+%\bibliography{biblio}
+
+\end{document}
