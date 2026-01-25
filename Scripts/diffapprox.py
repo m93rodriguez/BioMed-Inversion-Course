@@ -5,18 +5,7 @@ import scipy.sparse as sp
 import matplotlib.pyplot as plt
 from scipy.interpolate import interpn
 
-
-def da2d(k2, delta, source_pos):
-    """
-    Returns the Green's function to the modified Helmholtz equation: -nabla^2 phi(r) + k2(r) phi(r) = delta(r-r').
-    Dirichlet boundary conditions. Uses FEM.
-    :param k2: k-squared parameter of the Helmholtz equation. Given as a 2D matrix. It is assumed that each point
-        is the center of the square-pixel and that k2 is uniform inside each square.
-    :param delta: Discretization mesh size. It is assumed equal in each dimension.
-    :param source_pos: Position of the dirac delta, r' = (sx,sy).
-    :return: Solution phi(r) given as a 2D array of same shape as k2. Interpolated from vertex values to pixel centers.
-    """
-
+def da2d_fem_matrix(k2, delta):
     element_grid = k2.shape
     vertex_grid = [k2.shape[0] + 1, k2.shape[1] + 1]  # Num vertices per dimension
 
@@ -89,23 +78,44 @@ def da2d(k2, delta, source_pos):
 
         vals[row_offset[:inside] + col] += delta ** 2 * k2.flat[ele_idx] / 36 - 1 / 3
 
-    matrix = sp.csr_matrix((vals, cols_idx, row_offset))
+    return sp.csr_matrix((vals, cols_idx, row_offset))
 
-    sources = np.zeros(num_vertices)
+def da2d(k2, delta, source_pos):
+    """
+    Returns the Green's function to the modified Helmholtz equation: -nabla^2 phi(r) + k2(r) phi(r) = delta(r-r').
+    Dirichlet boundary conditions. Uses FEM.
+    :param k2: k-squared parameter of the Helmholtz equation. Given as a 2D matrix. It is assumed that each point
+        is the center of the square-pixel and that k2 is uniform inside each square.
+    :param delta: Discretization mesh size. It is assumed equal in each dimension.
+    :param source_pos: Position of the dirac delta, r' = (sx,sy).
+    :return: Solution phi(r) given as a 2D array of same shape as k2. Interpolated from vertex values to pixel centers.
+    """
 
-    sx =  round(source_pos[0]/delta)
-    sy = round(source_pos[1]/delta)
+    matrix = da2d_fem_matrix(k2, delta)
 
-    s_idx = (vertex_grid[1] - 2) * sx + sy
+    vertex_grid = [k2.shape[0] + 1, k2.shape[1] + 1]
+    num_vertices = matrix.shape[1]
 
-    sources[s_idx] = 1
+    phi = np.empty([len(source_pos), *k2.shape])
 
-    phi_vertex = sp.linalg.spsolve(matrix, sources)
-    phi_vertex = phi_vertex.reshape(vertex_grid)
+    for i, source in enumerate(source_pos):
+        vertex_source = np.zeros(num_vertices)
 
-    coords = [delta*np.arange(vert) for vert in vertex_grid]
-    xi = np.stack(np.meshgrid(*[(np.arange(s) + 0.5)*delta for s in k2.shape], indexing='ij'), axis=2)
-    return interpn(coords, phi_vertex, xi)
+        sx =  round(source[0]/delta)
+        sy = round(source[1]/delta)
+
+        s_idx = (vertex_grid[1] - 2) * sx + sy
+
+        vertex_source[s_idx] = 1
+
+        phi_vertex = sp.linalg.spsolve(matrix, vertex_source)
+        phi_vertex = phi_vertex.reshape(vertex_grid)
+
+        coords = [delta*np.arange(vert) for vert in vertex_grid]
+        xi = np.stack(np.meshgrid(*[(np.arange(s) + 0.5)*delta for s in k2.shape], indexing='ij'), axis=2)
+        phi[i] = interpn(coords, phi_vertex, xi)
+
+    return phi
 
 def da1d(k2, s, dx):
     n = k2.size
@@ -121,17 +131,4 @@ def da1d(k2, s, dx):
     return np.linalg.solve(mat, s)
 
 if __name__ == '__main__':
-    # Domain properties
-    delta = 0.1
-    k2 = np.full((150, 350), 0.03)
-
-    x, y = np.meshgrid(*[(np.arange(s) - 0.5) for s in k2.shape], sparse=True, indexing='ij')
-    k2[((x-50)**2 + (y-200)**2) < 50**2] = 0.5
-
-    phi = da2d(k2, delta, [0.5, 0.5])
-
-    func = lambda x : np.log10(x)
-    plt.imshow(func(phi), cmap='jet')
-    plt.show()
-
-    print("Done")
+    pass
