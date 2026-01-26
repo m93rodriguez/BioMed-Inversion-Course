@@ -87,8 +87,10 @@ def da2d(k2, delta, source_pos):
     :param k2: k-squared parameter of the Helmholtz equation. Given as a 2D matrix. It is assumed that each point
         is the center of the square-pixel and that k2 is uniform inside each square.
     :param delta: Discretization mesh size. It is assumed equal in each dimension.
-    :param source_pos: Position of the dirac delta, r' = (sx,sy).
-    :return: Solution phi(r) given as a 2D array of same shape as k2. Interpolated from vertex values to pixel centers.
+    :param source_pos: Array of source position of the dirac delta, r' = (sx,sy). Gigven as an array of dimensions
+        Sx2, where S is the number of sources.
+    :return: Solution phi(r) given as a 3D array of same shape as S x k2.shape.
+        Interpolated from vertex values to pixel centers.
     """
 
     matrix = da2d_fem_matrix(k2, delta)
